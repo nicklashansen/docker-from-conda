@@ -17,24 +17,15 @@
 FROM nvidia/cuda:11.3.0-runtime-ubuntu20.04
 ENV LANG=C.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
+RUN echo "export LANG=C.UTF-8" >> /etc/profile
 
 # apt-get
 RUN apt-get -y update && \
     apt-get install -y git nano rsync vim tree curl wget unzip xvfb patchelf ffmpeg cmake \
     swig libssl-dev libcurl4-openssl-dev cmake libopenmpi-dev python3-dev zlib1g-dev \
     qtbase5-dev qtdeclarative5-dev libglib2.0-0 libglu1-mesa-dev libgl1-mesa-dev \
-    libgl1-mesa-glx libosmesa6 libosmesa6-dev libglew-dev
-RUN rm -rf /var/lib/apt/lists/*
-
-# mujoco 2.1.0 (required by older packages)
-RUN mkdir /root/.mujoco && cd /root/.mujoco
-RUN wget --quiet https://github.com/deepmind/mujoco/releases/download/2.1.0/mujoco210-linux-x86_64.tar.gz && \
-    tar -xzf mujoco210-linux-x86_64.tar.gz && \
-    rm mujoco210-linux-x86_64.tar.gz && \
-    cp -r mujoco210 mujoco210_linux && \
-    cd /root
-ENV MJLIB_PATH /root/.mujoco/mujoco210/lib/libmujoco.so.2.1.0
-ENV LD_LIBRARY_PATH /root/.mujoco/mujoco210/bin:$LD_LIBRARY_PATH
+    libgl1-mesa-glx libosmesa6 libosmesa6-dev libglew-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # conda
 CMD ["/usr/sbin/sshd", "-D"]
@@ -55,8 +46,3 @@ RUN export ENVNAME="$(sed q /root/environment.yml | awk '{print $2}')" && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> /root/.bashrc && \
     echo "conda activate $ENVNAME" >> /root/.bashrc && \
     echo "export PATH=/opt/conda/envs/$ENVNAME/bin:$PATH" >> /root/.bashrc
-
-# finalize
-RUN mkdir /root/.ssh && \
-    echo "export LANG=C.UTF-8" >> /etc/profile && \
-    echo "Done!"
